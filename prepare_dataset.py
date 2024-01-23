@@ -53,9 +53,11 @@ def extract_ecg_data(data_path):
             # Normalize lead name
             lead = lead_name_mapping.get(lead, lead).split("_")[-1]
             scale = float(sequence.find(".//ns:scale", namespaces).attrib["value"])
+            unit = sequence.find(".//ns:origin", namespaces).attrib["unit"]
             signal = [int(x) for x in sequence.find(".//ns:digits", namespaces).text.strip().split()]
             ecg_data["leads"][lead] = signal
             ecg_data["scale"] = scale
+            ecg_data["unit"] = unit
     
     return ecg_data
 
@@ -90,8 +92,8 @@ def save_ecg(save_path, ecg_data):
         file.write(f"{ecg_data['seq_id']} {num_leads} 1000 {num_samples}\n")
         # Write individual lead information
         for lead in lead_order:
-            file.write(f"{ecg_data['seq_id']}.dat 16 {ecg_data['scale']} 0 0 {lead}\n")
-        
+            line = f"{ecg_data['seq_id']}.dat 16 {ecg_data['scale']}({0})/{ecg_data['unit']} {lead}\n"
+            file.write(line.strip() + "\n")
         # Write acquisition time
         file.write(f"# Acquisition Time: {ecg_data['acq_time']}\n")
     
